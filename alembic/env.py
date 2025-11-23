@@ -21,7 +21,7 @@ if config.config_file_name is not None:
 import sys
 sys.path.append('.')
 from app.database import Base
-from app.models import user  # Import to register models
+from app.models import user, task  # Import to register models
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

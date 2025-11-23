@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class UserBase(BaseModel):
-    full_name: str
+    full_name: str = Field(..., min_length=1)
     email: str
     phone: str | None = None
     fields: str | None = None

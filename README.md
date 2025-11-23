@@ -1,6 +1,6 @@
 # Fit Plant Backend
 
-A FastAPI backend with user roles (admin and worker). Admins can perform CRUD operations on workers.
+A FastAPI backend with user roles (admin and worker). Admins can perform CRUD operations on workers and tasks.
 
 ## Project Structure
 
@@ -13,19 +13,23 @@ fit_plant_backend/
 │   ├── dependencies.py
 │   ├── models/
 │   │   ├── __init__.py
-│   │   └── user.py
+│   │   ├── user.py
+│   │   └── task.py
 │   ├── schemas/
 │   │   ├── __init__.py
-│   │   └── user.py
+│   │   ├── user.py
+│   │   └── task.py
 │   ├── crud/
 │   │   ├── __init__.py
-│   │   └── user.py
+│   │   ├── user.py
+│   │   └── task.py
 │   ├── auth/
 │   │   ├── __init__.py
 │   │   └── auth.py
 │   └── routers/
 │       ├── __init__.py
-│       └── users.py
+│       ├── users.py
+│       └── tasks.py
 ├── tests/
 ├── requirements.txt
 ├── README.md
@@ -49,6 +53,10 @@ fit_plant_backend/
 - `POST /api/workers/`: Create a new worker (admin only) - requires password and confirm_password, optional profile_image upload
 - `PUT /api/workers/{user_id}`: Update a worker (admin only)
 - `DELETE /api/workers/{user_id}`: Delete a worker (admin only)
+- `GET /api/tasks/`: Get list of tasks (admin only)
+- `POST /api/tasks/`: Create a new task (admin only)
+- `PUT /api/tasks/{task_id}`: Update a task (admin only)
+- `DELETE /api/tasks/{task_id}`: Delete a task (admin only)
 
 ## Authentication
 

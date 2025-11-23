@@ -20,10 +20,17 @@ def get_user_by_email(db: Session, email: str):
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(User).offset(skip).limit(limit).all()
 
-def get_workers(db: Session, page: int = 1, limit: int = 10):
+def get_workers(db: Session, page: int = 1, limit: int = 10, search: str = None):
+    query = db.query(User).filter(User.role == "worker")
+    if search:
+        query = query.filter(
+            (User.full_name.ilike(f"%{search}%")) |
+            (User.email.ilike(f"%{search}%")) |
+            (User.fields.ilike(f"%{search}%"))
+        )
+    total = query.count()
     offset = (page - 1) * limit
-    workers = db.query(User).filter(User.role == "worker").offset(offset).limit(limit).all()
-    total = db.query(User).filter(User.role == "worker").count()
+    workers = query.offset(offset).limit(limit).all()
     return workers, total
 
 def create_user(db: Session, user: UserCreate, image_path: str | None = None):

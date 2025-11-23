@@ -9,6 +9,7 @@ from .crud.user import authenticate_user
 from .auth.auth import create_access_token, get_current_active_user, ACCESS_TOKEN_EXPIRE_MINUTES
 from .schemas.user import Token, User
 from .routers.users import router
+from .routers.tasks import router as tasks_router
 from .dependencies import get_db
 
 app = FastAPI()
@@ -26,6 +27,7 @@ app.add_middleware(
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.include_router(router, prefix="/api", tags=["users"])
+app.include_router(tasks_router, prefix="/api", tags=["tasks"])
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):

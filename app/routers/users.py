@@ -10,12 +10,12 @@ import shutil
 router = APIRouter()
 
 @router.get("/workers/", response_model=PaginatedWorkers)
-def read_workers(page: int = 1, limit: int = 10, db: Session = Depends(get_db), current_user = Depends(get_current_admin)):
+def read_workers(page: int = 1, limit: int = 10, search: str = None, db: Session = Depends(get_db), current_user = Depends(get_current_admin)):
     if page < 1:
         raise HTTPException(status_code=400, detail="Page must be greater than 0")
     if limit < 1 or limit > 100:
         raise HTTPException(status_code=400, detail="Limit must be between 1 and 100")
-    workers, total = get_workers(db, page=page, limit=limit)
+    workers, total = get_workers(db, page=page, limit=limit, search=search)
     total_pages = (total + limit - 1) // limit  # Ceiling division
     return PaginatedWorkers(
         workers=workers,
@@ -83,6 +83,8 @@ def create_worker(
 
 @router.put("/workers/{user_id}", response_model=User)
 def update_worker(user_id: int, user_update: UserUpdate, db: Session = Depends(get_db), current_user = Depends(get_current_admin)):
+    if user_update.full_name is not None and not user_update.full_name.strip():
+        raise HTTPException(status_code=400, detail="Full name cannot be empty")
     db_user = update_user(db, user_id=user_id, user_update=user_update)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
