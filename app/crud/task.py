@@ -6,14 +6,22 @@ from ..models.user import User
 def get_task(db: Session, task_id: int):
     return db.query(Task).filter(Task.id == task_id).first()
 
-def get_tasks(db: Session, page: int = 1, limit: int = 10, search: str = None):
+def get_tasks(db: Session, page: int = 1, limit: int = 10, search: str = None, status: str = None, worker_id: int = None, severity: str = None, user: User = None):
     query = db.query(Task)
+    if user and user.role == "worker":
+        query = query.filter(Task.assigned_to == user.id)
     if search:
         query = query.filter(
             (Task.title.ilike(f"%{search}%")) |
             (Task.description.ilike(f"%{search}%")) |
             (Task.crop_type.ilike(f"%{search}%"))
         )
+    if status:
+        query = query.filter(Task.status == status)
+    if worker_id:
+        query = query.filter(Task.assigned_to == worker_id)
+    if severity:
+        query = query.filter(Task.severity == severity)
     total = query.count()
     offset = (page - 1) * limit
     tasks = query.options(joinedload(Task.assigned_user)).offset(offset).limit(limit).all()
@@ -26,10 +34,13 @@ def get_tasks(db: Session, page: int = 1, limit: int = 10, search: str = None):
             due_date=task.due_date,
             assigned_to=task.assigned_to,
             status=task.status,
+            severity=task.severity,
             created_by=task.created_by,
             created_at=task.created_at,
             updated_at=task.updated_at,
-            worker_name=task.assigned_user.full_name if task.assigned_user else ""
+            worker_name=task.assigned_user.full_name if task.assigned_user else "",
+            image_path=task.image_path,
+            plant_condition=task.plant_condition
         )
         for task in tasks
     ]
@@ -43,6 +54,7 @@ def create_task(db: Session, task: TaskCreate, created_by: int):
         due_date=task.due_date,
         assigned_to=task.assigned_to,
         status=task.status,
+        severity=task.severity,
         created_by=created_by
     )
     db.add(db_task)
@@ -55,6 +67,16 @@ def update_task(db: Session, task_id: int, task_update: TaskUpdate):
     if db_task:
         for key, value in task_update.dict(exclude_unset=True).items():
             setattr(db_task, key, value)
+        db.commit()
+        db.refresh(db_task)
+    return db_task
+
+def complete_task(db: Session, task_id: int, image_path: str, plant_condition: str, worker_id: int):
+    db_task = db.query(Task).filter(Task.id == task_id, Task.assigned_to == worker_id, Task.status == "pending").first()
+    if db_task:
+        db_task.status = "completed"
+        db_task.image_path = image_path
+        db_task.plant_condition = plant_condition
         db.commit()
         db.refresh(db_task)
     return db_task
@@ -81,7 +103,9 @@ def get_tasks_by_admin(db: Session, admin_id: int, skip: int = 0, limit: int = 1
             created_by=task.created_by,
             created_at=task.created_at,
             updated_at=task.updated_at,
-            worker_name=task.assigned_user.full_name if task.assigned_user else ""
+            worker_name=task.assigned_user.full_name if task.assigned_user else "",
+            image_path=task.image_path,
+            plant_condition=task.plant_condition
         )
         for task in tasks
     ]

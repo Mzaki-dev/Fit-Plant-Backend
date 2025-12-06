@@ -8,3 +8,7 @@ passlib
 python-multipart
 psycopg2-binary
 python-dotenv
+tensorflow
+pillow
+opencv-python
+numpy

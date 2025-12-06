@@ -4,12 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from datetime import timedelta
+import os
 from .database import engine, Base, SessionLocal
 from .crud.user import authenticate_user
 from .auth.auth import create_access_token, get_current_active_user, ACCESS_TOKEN_EXPIRE_MINUTES
 from .schemas.user import Token, User
 from .routers.users import router
 from .routers.tasks import router as tasks_router
+from .routers.predictions import router as predictions_router
 from .dependencies import get_db
 
 app = FastAPI()
@@ -24,10 +26,14 @@ app.add_middleware(
 )
 
 # Mount static files for uploads
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+app.mount("/uploads", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "..", "uploads")), name="uploads")
+
+# Mount static files for processed images
+app.mount("/processed_images", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "..", "processed_images")), name="processed_images")
 
 app.include_router(router, prefix="/api", tags=["users"])
 app.include_router(tasks_router, prefix="/api", tags=["tasks"])
+app.include_router(predictions_router, prefix="/api", tags=["predictions"])
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):

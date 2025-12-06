@@ -9,6 +9,12 @@ class TaskStatus(str, enum.Enum):
     in_progress = "in_progress"
     completed = "completed"
 
+class TaskSeverity(str, enum.Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
+    critical = "critical"
+
 class Task(Base):
     __tablename__ = "tasks"
 
@@ -19,9 +25,12 @@ class Task(Base):
     due_date = Column(DateTime)
     assigned_to = Column(Integer, ForeignKey("users.id"))
     status = Column(Enum(TaskStatus), default=TaskStatus.pending)
+    severity = Column(Enum(TaskSeverity), default=TaskSeverity.low)
     created_by = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    image_path = Column(String, nullable=True)
+    plant_condition = Column(String, nullable=True)
 
     # Relationships
     assigned_user = relationship("User", foreign_keys=[assigned_to])
