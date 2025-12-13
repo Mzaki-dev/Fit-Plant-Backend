@@ -8,6 +8,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
 import os
 import shutil
+from ..models.task import Task
 
 router = APIRouter()
 
@@ -94,6 +95,11 @@ def update_worker(user_id: int, user_update: UserUpdate, db: Session = Depends(g
 
 @router.delete("/workers/{user_id}")
 def delete_worker(user_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_admin)):
+    # Check if worker has assigned tasks
+    task_count = db.query(Task).filter((Task.assigned_to == user_id) | (Task.created_by == user_id)).count()
+    if task_count > 0:
+        raise HTTPException(status_code=400, detail="Cannot delete worker with assigned or created tasks")
+    
     db_user = delete_user(db, user_id=user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
