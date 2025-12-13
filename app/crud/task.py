@@ -39,6 +39,7 @@ def get_tasks(db: Session, page: int = 1, limit: int = 10, search: str = None, s
             created_at=task.created_at,
             updated_at=task.updated_at,
             worker_name=task.assigned_user.full_name if task.assigned_user else "",
+            worker_image_path=task.assigned_user.image_path if task.assigned_user else None,
             image_path=task.image_path,
             plant_condition=task.plant_condition
         )
@@ -100,10 +101,12 @@ def get_tasks_by_admin(db: Session, admin_id: int, skip: int = 0, limit: int = 1
             due_date=task.due_date,
             assigned_to=task.assigned_to,
             status=task.status,
+            severity=task.severity,
             created_by=task.created_by,
             created_at=task.created_at,
             updated_at=task.updated_at,
             worker_name=task.assigned_user.full_name if task.assigned_user else "",
+            worker_image_path=task.assigned_user.image_path if task.assigned_user else None,
             image_path=task.image_path,
             plant_condition=task.plant_condition
         )

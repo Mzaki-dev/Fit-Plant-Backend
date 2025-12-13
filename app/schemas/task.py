@@ -62,6 +62,7 @@ class TaskWithWorker(BaseModel):
     created_at: datetime
     updated_at: datetime
     worker_name: str
+    worker_image_path: Optional[str] = None
     image_path: Optional[str] = None
     plant_condition: Optional[str] = None
 

@@ -31,5 +31,6 @@ class Report(ReportBase):
 class PaginatedReports(BaseModel):
     reports: List[Report]
     total: int
-    skip: int
+    page: int
     limit: int
+    total_pages: int

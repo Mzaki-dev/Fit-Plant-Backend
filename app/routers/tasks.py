@@ -52,6 +52,7 @@ def read_single_task(task_id: int, db: Session = Depends(get_db), current_user =
         created_at=task.created_at,
         updated_at=task.updated_at,
         worker_name=task.assigned_user.full_name if task.assigned_user else "",
+        worker_image_path=task.assigned_user.image_path if task.assigned_user else None,
         image_path=task.image_path,
         plant_condition=task.plant_condition
     )

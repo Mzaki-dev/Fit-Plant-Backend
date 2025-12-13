@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from ..dependencies import get_db
-from ..crud.user import get_workers, create_user, update_user, delete_user
-from ..schemas.user import User, UserCreate, UserUpdate, PaginatedWorkers
-from ..auth.auth import get_current_admin
+from ..crud.user import get_workers, create_user, update_user, delete_user, authenticate_user
+from ..schemas.user import User, UserCreate, UserUpdate, PaginatedWorkers, Token
+from ..auth.auth import get_current_admin, create_access_token, get_current_active_user, ACCESS_TOKEN_EXPIRE_MINUTES
+from fastapi.security import OAuth2PasswordRequestForm
+from datetime import timedelta
 import os
 import shutil
 
@@ -96,3 +98,22 @@ def delete_worker(user_id: int, db: Session = Depends(get_db), current_user = De
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User deleted"}
+
+@router.post("/token", response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = authenticate_user(db, email=form_data.username, password=form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.email, "role": user.role}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/me/", response_model=User)
+async def read_users_me(current_user: User = Depends(get_current_active_user)):
+    return current_user
