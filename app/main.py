@@ -25,10 +25,14 @@ app.add_middleware(
 )
 
 # Mount static files for uploads
-app.mount("/uploads", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "..", "uploads")), name="uploads")
+uploads_dir = os.path.join(os.path.dirname(__file__), "..", "uploads")
+if os.path.exists(uploads_dir):
+    app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 # Mount static files for processed images
-app.mount("/processed_images", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "..", "processed_images")), name="processed_images")
+processed_dir = os.path.join(os.path.dirname(__file__), "..", "processed_images")
+if os.path.exists(processed_dir):
+    app.mount("/processed_images", StaticFiles(directory=processed_dir), name="processed_images")
 
 app.include_router(router, prefix="/api", tags=["users"])
 app.include_router(tasks_router, prefix="/api", tags=["tasks"])

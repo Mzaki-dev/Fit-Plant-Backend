@@ -19,36 +19,42 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# Load your trained model
-img_shape = (224, 224, 3)
-class_count = 38
+model = None
 
-base_model = tf.keras.applications.EfficientNetB3(
-    include_top=False,
-    weights="imagenet",
-    input_shape=img_shape,
-    pooling='max'
-)
+def get_model():
+    global model
+    if model is None:
+        # Load your trained model
+        img_shape = (224, 224, 3)
+        class_count = 38
 
-model = Sequential([
-    base_model,
-    BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001),
-    Dense(256,
-          kernel_regularizer=regularizers.l2(0.016),
-          activity_regularizer=regularizers.l1(0.006),
-          bias_regularizer=regularizers.l1(0.006),
-          activation='relu'),
-    Dropout(rate=0.45, seed=123),
-    Dense(class_count, activation='softmax')
-])
+        base_model = tf.keras.applications.EfficientNetB3(
+            include_top=False,
+            weights="imagenet",
+            input_shape=img_shape,
+            pooling='max'
+        )
 
-model_path = "models/efficientnetb3-Plant Village Disease-weights.h5"
-if os.path.exists(model_path):
-    model.load_weights(model_path)
-    logger.info("Model loaded successfully.")
-else:
-    logger.error(f"Model file not found: {model_path}")
-    raise FileNotFoundError(f"Model file not found: {model_path}")
+        model = Sequential([
+            base_model,
+            BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001),
+            Dense(256,
+                  kernel_regularizer=regularizers.l2(0.016),
+                  activity_regularizer=regularizers.l1(0.006),
+                  bias_regularizer=regularizers.l1(0.006),
+                  activation='relu'),
+            Dropout(rate=0.45, seed=123),
+            Dense(class_count, activation='softmax')
+        ])
+
+        model_path = "models/efficientnetb3-Plant Village Disease-weights.h5"
+        if os.path.exists(model_path):
+            model.load_weights(model_path)
+            logger.info("Model loaded successfully.")
+        else:
+            logger.error(f"Model file not found: {model_path}")
+            raise FileNotFoundError(f"Model file not found: {model_path}")
+    return model
 
 # Define class names with user-friendly mapping
 class_names = [
@@ -197,7 +203,7 @@ async def predict(file: UploadFile = File(...)):
         img_array = np.expand_dims(img_array, axis=0)
 
         # Predict
-        predictions = model.predict(img_array)
+        predictions = get_model().predict(img_array)
         predicted_index = np.argmax(predictions, axis=1)[0]
         predicted_class = class_names[predicted_index]
         confidence = float(np.max(predictions))
