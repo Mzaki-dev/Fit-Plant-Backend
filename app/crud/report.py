@@ -5,10 +5,18 @@ from ..schemas.report import ReportCreate, ReportUpdate
 def get_report(db: Session, report_id: str):
     return db.query(Report).filter(Report.report_id == report_id).first()
 
-def get_reports(db: Session, skip: int = 0, limit: int = 100):
+def get_reports(db: Session, skip: int = 0, limit: int = 100, search: str = None):
     query = db.query(Report)
+    if search:
+        query = query.filter(
+            (Report.title.ilike(f"%{search}%")) |
+            (Report.assigned_to_name.ilike(f"%{search}%")) |
+            (Report.created_by.ilike(f"%{search}%")) |
+            (Report.severity_level.ilike(f"%{search}%")) |
+            (Report.status.ilike(f"%{search}%"))
+        )
     total = query.count()
-    reports = query.offset(skip).limit(limit).all()
+    reports = query.order_by(Report.created_at.desc()).offset(skip).limit(limit).all()
     print(f"DEBUG: Total reports in DB: {total}, returning {len(reports)} reports")
     return reports, total
 

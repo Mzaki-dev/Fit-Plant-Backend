@@ -21,13 +21,13 @@ def read_report(report_id: str, db: Session = Depends(get_db), response: Respons
     return db_report
 
 @router.get("/", response_model=PaginatedReports)
-def read_reports(page: int = 1, limit: int = 10, db: Session = Depends(get_db), response: Response = None):
+def read_reports(page: int = 1, limit: int = 10, search: str = None, db: Session = Depends(get_db), response: Response = None):
     if page < 1:
         raise HTTPException(status_code=400, detail="Page must be greater than 0")
     if limit < 1 or limit > 100:
         raise HTTPException(status_code=400, detail="Limit must be between 1 and 100")
     skip = (page - 1) * limit
-    reports, total = get_reports(db, skip=skip, limit=limit)
+    reports, total = get_reports(db, skip=skip, limit=limit, search=search)
     total_pages = (total + limit - 1) // limit  # Ceiling division
     if response:
         response.headers["Cache-Control"] = "no-cache"

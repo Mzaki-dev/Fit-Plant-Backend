@@ -40,3 +40,8 @@ class PaginatedWorkers(BaseModel):
 
     class Config:
         from_attributes = True
+
+class TaskCounts(BaseModel):
+    pending: int
+    completed: int
+    total: int

@@ -24,7 +24,7 @@ def get_tasks(db: Session, page: int = 1, limit: int = 10, search: str = None, s
         query = query.filter(Task.severity == severity)
     total = query.count()
     offset = (page - 1) * limit
-    tasks = query.options(joinedload(Task.assigned_user)).offset(offset).limit(limit).all()
+    tasks = query.order_by(Task.created_at.desc()).options(joinedload(Task.assigned_user)).offset(offset).limit(limit).all()
     task_list = [
         TaskWithWorker(
             id=task.id,
@@ -112,3 +112,14 @@ def get_tasks_by_admin(db: Session, admin_id: int, skip: int = 0, limit: int = 1
         )
         for task in tasks
     ]
+
+def get_task_counts_for_user(db: Session, user_id: int):
+    tasks = db.query(Task.status).filter(Task.assigned_to == user_id).all()
+    total = len(tasks)
+    pending = sum(1 for t in tasks if t.status == 'pending')
+    completed = sum(1 for t in tasks if t.status == 'completed')
+    return {
+        'total': total,
+        'pending': pending,
+        'completed': completed
+    }

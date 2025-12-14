@@ -8,6 +8,9 @@ from .routers.users import router
 from .routers.tasks import router as tasks_router
 from .routers.predictions import router as predictions_router
 from .routers.reports import router as reports_router
+from .routers.dashboard import router as dashboard_router
+from .routers.auth import router as auth_router
+from .routers.workers import router as workers_router
 from .dependencies import get_db
 
 app = FastAPI()
@@ -31,3 +34,6 @@ app.include_router(router, prefix="/api", tags=["users"])
 app.include_router(tasks_router, prefix="/api", tags=["tasks"])
 app.include_router(predictions_router, prefix="/api", tags=["predictions"])
 app.include_router(reports_router, prefix="/api/reports", tags=["reports"])
+app.include_router(dashboard_router, prefix="/api", tags=["dashboard"])
+app.include_router(auth_router, prefix="/api", tags=["auth"])
+app.include_router(workers_router, prefix="/api", tags=["workers"])

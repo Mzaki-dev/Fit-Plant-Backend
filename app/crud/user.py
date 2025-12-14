@@ -30,7 +30,7 @@ def get_workers(db: Session, page: int = 1, limit: int = 10, search: str = None)
         )
     total = query.count()
     offset = (page - 1) * limit
-    workers = query.offset(offset).limit(limit).all()
+    workers = query.order_by(User.id.desc()).offset(offset).limit(limit).all()
     return workers, total
 
 def create_user(db: Session, user: UserCreate, image_path: str | None = None):
