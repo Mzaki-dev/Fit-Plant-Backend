@@ -10,5 +10,5 @@ psycopg2-binary
 python-dotenv
 tensorflow
 pillow
-opencv-python
+opencv-python-headless
 numpy
