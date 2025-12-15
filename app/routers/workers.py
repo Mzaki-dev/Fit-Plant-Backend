@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from ..dependencies import get_db
 from ..crud.user import get_workers, create_user, update_user, delete_user
 from ..schemas.user import User, UserCreate, UserUpdate, PaginatedWorkers
@@ -56,7 +57,14 @@ def create_worker(
     user_obj = UserCreate(**user_data)
     
     # Create user first
-    db_user = create_user(db=db, user=user_obj)
+    try:
+        db_user = create_user(db=db, user=user_obj)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Email already exists")
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
     
     # Handle image upload
     if profile_image:
