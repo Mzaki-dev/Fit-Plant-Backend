@@ -10,6 +10,7 @@ from ..models.task import Task as TaskModel
 import os
 import shutil
 import datetime
+from datetime import timedelta
 
 router = APIRouter()
 
@@ -59,6 +60,10 @@ def read_single_task(task_id: int, db: Session = Depends(get_db), current_user =
 
 @router.post("/tasks/", response_model=Task)
 def create_new_task(task: TaskCreate, db: Session = Depends(get_db), current_user = Depends(get_current_admin)):
+    # Default due_date to 10 days from now when omitted
+    if task.due_date is None:
+        task = TaskCreate(**{**task.dict(), "due_date": datetime.datetime.utcnow() + timedelta(days=10)})
+
     # Check if assigned_to is a worker
     assigned_user = db.query(User).filter(User.id == task.assigned_to, User.role == "worker").first()
     if not assigned_user:
