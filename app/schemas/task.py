@@ -53,7 +53,6 @@ class TaskUpdate(BaseModel):
     status: Optional[TaskStatus] = None
     severity: Optional[TaskSeverity] = None
     image_path: Optional[str] = None
-    plant_condition: Optional[str] = None
 
 class Task(TaskBase):
     id: int
@@ -61,7 +60,6 @@ class Task(TaskBase):
     created_at: datetime
     updated_at: datetime
     image_path: Optional[str] = None
-    plant_condition: Optional[str] = None
     image_name: Optional[str] = None
 
     class Config:
@@ -82,7 +80,6 @@ class TaskWithWorker(BaseModel):
     worker_name: str
     worker_image_path: Optional[str] = None
     image_path: Optional[str] = None
-    plant_condition: Optional[str] = None
 
     class Config:
         from_attributes = True
