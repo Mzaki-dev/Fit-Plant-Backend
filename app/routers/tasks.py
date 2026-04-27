@@ -55,7 +55,10 @@ def read_single_task(task_id: int, db: Session = Depends(get_db), current_user =
         updated_at=task.updated_at,
         worker_name=task.assigned_user.full_name if task.assigned_user else "",
         worker_image_path=task.assigned_user.image_path if task.assigned_user else None,
-        image_path=task.image_path
+        image_path=task.image_path,
+        land_name=task.land_name,
+        watering=task.watering,
+        pesticides=task.pesticides
     )
 
 @router.post("/tasks/", response_model=Task)
@@ -83,7 +86,7 @@ def update_existing_task(task_id: int, task_update: TaskUpdate, db: Session = De
     return db_task
 
 @router.put("/tasks/{task_id}/complete", response_model=Task)
-def complete_task_endpoint(task_id: int, file: UploadFile = File(...), db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+def complete_task_endpoint(task_id: int, file: UploadFile = File(None), db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     if current_user.role != "worker":
         raise HTTPException(status_code=403, detail="Only workers can complete tasks")
     
@@ -96,22 +99,24 @@ def complete_task_endpoint(task_id: int, file: UploadFile = File(...), db: Sessi
     if task.status != "pending":
         raise HTTPException(status_code=400, detail="Task is not pending")
     
-    # Save the uploaded file
-    upload_dir = f"uploads/worker_{current_user.id}"
-    os.makedirs(upload_dir, exist_ok=True)
-    file_extension = os.path.splitext(file.filename)[1]
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    file_name = f"task_{task_id}_worker_{current_user.id}_{timestamp}{file_extension}"
-    file_path = f"{upload_dir}/{file_name}"
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    
+    file_path = None
+    file_name = None
+    if file is not None:
+        upload_dir = f"uploads/worker_{current_user.id}"
+        os.makedirs(upload_dir, exist_ok=True)
+        file_extension = os.path.splitext(file.filename)[1]
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_name = f"task_{task_id}_worker_{current_user.id}_{timestamp}{file_extension}"
+        file_path = f"{upload_dir}/{file_name}"
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
     # Complete the task
     db_task = complete_task(db, task_id=task_id, image_path=file_path, worker_id=current_user.id)
     if db_task is None:
         raise HTTPException(status_code=404, detail="Task not found or already completed")
-    # Add image_name to response
-    db_task.image_name = file_name
+    # Add image_name to response if file was uploaded
+    if file_name:
+        db_task.image_name = file_name
     return db_task
 
 @router.get("/tasks/{task_id}/image")
